@@ -1,15 +1,12 @@
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Session, User } from '@supabase/supabase-js';
 import { toast } from '@/components/ui/use-toast';
-
-type User = {
-  id: string;
-  email: string;
-  name?: string;
-};
 
 type AuthContextType = {
   user: User | null;
+  session: Session | null;
   isLoading: boolean;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
@@ -20,45 +17,46 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // This is a placeholder for Supabase authentication check
-    // After connecting Supabase, this will use supabase.auth.getUser() or similar
-    const checkAuthState = async () => {
-      try {
-        // Simulate checking local storage for user session
-        const storedUser = localStorage.getItem('artify3d_user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
-      } catch (error) {
-        console.error('Error checking auth state:', error);
-      } finally {
-        setIsLoading(false);
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, session);
+        setSession(session);
+        setUser(session?.user ?? null);
       }
-    };
+    );
 
-    checkAuthState();
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const signUp = async (email: string, password: string, name: string) => {
     setIsLoading(true);
     try {
-      // Simulate signup - This will be replaced with Supabase Auth
-      // After connecting Supabase, this will use supabase.auth.signUp()
-      console.log(`Sign up with: ${email}, ${name}`);
+      const { data, error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          data: {
+            name
+          }
+        }
+      });
       
-      // Create mock user (replace with Supabase response)
-      const newUser = {
-        id: `user_${Math.random().toString(36).slice(2, 10)}`,
-        email,
-        name
-      };
+      if (error) throw error;
       
-      setUser(newUser);
-      localStorage.setItem('artify3d_user', JSON.stringify(newUser));
-      toast({ title: "Success", description: "Account created successfully!" });
+      toast({ title: "Success", description: "Account created successfully! Please verify your email." });
+      return;
     } catch (error: any) {
       toast({ 
         title: "Error", 
@@ -74,19 +72,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Simulate login - This will be replaced with Supabase Auth
-      // After connecting Supabase, this will use supabase.auth.signInWithPassword()
-      console.log(`Login with: ${email}`);
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
-      // Mock user login (replace with Supabase response)
-      const loggedInUser = {
-        id: `user_${Math.random().toString(36).slice(2, 10)}`,
-        email,
-        name: email.split('@')[0]
-      };
+      if (error) throw error;
       
-      setUser(loggedInUser);
-      localStorage.setItem('artify3d_user', JSON.stringify(loggedInUser));
       toast({ title: "Success", description: "Logged in successfully!" });
     } catch (error: any) {
       toast({ 
@@ -103,12 +92,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     setIsLoading(true);
     try {
-      // Simulate logout - This will be replaced with Supabase Auth
-      // After connecting Supabase, this will use supabase.auth.signOut()
-      console.log('Logging out');
+      const { error } = await supabase.auth.signOut();
       
-      setUser(null);
-      localStorage.removeItem('artify3d_user');
+      if (error) throw error;
+      
       toast({ title: "Success", description: "Logged out successfully!" });
     } catch (error: any) {
       toast({ 
@@ -123,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, signUp, login, logout }}>
+    <AuthContext.Provider value={{ user, session, isLoading, signUp, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
