@@ -55,8 +55,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (error) throw error;
       
-      toast({ title: "Success", description: "Account created successfully! Please verify your email." });
-      return;
+      if (data.user?.identities?.length === 0) {
+        toast({ 
+          title: "Account exists", 
+          description: "An account with this email already exists. Please log in instead.", 
+          variant: "destructive" 
+        });
+      } else {
+        toast({ 
+          title: "Success", 
+          description: "Account created successfully! You can now log in." 
+        });
+      }
+      
     } catch (error: any) {
       toast({ 
         title: "Error", 

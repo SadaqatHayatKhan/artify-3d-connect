@@ -35,12 +35,17 @@ const SignUp: React.FC = () => {
       return;
     }
     
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
       await signUp(email, password, name);
-      // Navigate will happen when auth state changes
-    } catch (error) {
+      navigate('/login'); // Direct users to login after signup
+    } catch (error: any) {
       console.error('Signup error:', error);
     } finally {
       setIsLoading(false);
