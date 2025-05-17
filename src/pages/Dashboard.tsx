@@ -17,12 +17,17 @@ const Dashboard = () => {
     { label: 'Comments', value: '0' },
   ];
 
+  // Get display name from user metadata or email
+  const displayName = user?.user_metadata?.name || 
+                      user?.email?.split('@')[0] || 
+                      'Artist';
+
   return (
     <div className="container mx-auto py-10 px-4">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Welcome back, {user?.name || 'Artist'}!</p>
+          <p className="text-muted-foreground mt-1">Welcome back, {displayName}!</p>
         </div>
         <Button className="bg-primary hover:bg-primary/90">Upload New Artwork</Button>
       </div>
@@ -89,7 +94,7 @@ const Dashboard = () => {
                     <circle cx="12" cy="7" r="4"></circle>
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold">{user?.name || 'User'}</h3>
+                <h3 className="text-xl font-semibold">{displayName}</h3>
                 <p className="text-muted-foreground mb-2">{user?.email}</p>
                 <Button variant="outline" size="sm" className="mt-2">Edit Profile</Button>
               </div>
