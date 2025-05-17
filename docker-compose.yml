@@ -1,0 +1,39 @@
+
+version: '3.8'
+
+services:
+  # Frontend React application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - artify-network
+    restart: unless-stopped
+
+  # Supabase database container
+  db:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - artify-network
+    restart: unless-stopped
+
+networks:
+  artify-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
