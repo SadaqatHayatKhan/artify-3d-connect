@@ -12,7 +12,7 @@ type Artwork = Tables<'artworks'>;
 type Profile = Tables<'profiles'>;
 
 type GalleryItem = Artwork & {
-  profile?: Profile;
+  profile?: Profile | null;
 };
 
 type FilterCategory = 'All' | 'Characters' | 'Environments' | 'Abstract' | 'Products';
@@ -32,7 +32,7 @@ const Gallery = () => {
       try {
         let query = supabase
           .from('artworks')
-          .select('*, profile:profiles(*)');
+          .select('*, profiles:user_id(*)');
 
         if (activeCategory !== 'All') {
           query = query.eq('category', activeCategory);
@@ -45,7 +45,16 @@ const Gallery = () => {
           throw error;
         }
 
-        setArtworks(data || []);
+        // Transform the data to match our GalleryItem type
+        const transformedData: GalleryItem[] = data?.map(item => {
+          const { profiles, ...artwork } = item as any;
+          return {
+            ...artwork,
+            profile: profiles
+          };
+        }) || [];
+
+        setArtworks(transformedData);
       } catch (error) {
         console.error('Error fetching artworks:', error);
         toast({
