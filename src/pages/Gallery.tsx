@@ -34,7 +34,7 @@ const Gallery = () => {
           .from('artworks')
           .select(`
             *,
-            profiles:user_id (
+            profiles!fk_artworks_user_id (
               id,
               display_name,
               bio,
