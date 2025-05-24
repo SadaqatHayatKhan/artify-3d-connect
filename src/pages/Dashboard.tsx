@@ -67,9 +67,12 @@ const Dashboard = () => {
           .from('profiles')
           .select('*')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
         
-        if (profileError) throw profileError;
+        if (profileError && profileError.code !== 'PGRST116') {
+          throw profileError;
+        }
+        
         setUserProfile(profileData);
 
         // Fetch user artworks
@@ -138,7 +141,7 @@ const Dashboard = () => {
     setIsUploading(true);
     try {
       if (isEditMode && currentArtwork) {
-        // Update existing artwork
+        // UPDATE operation
         const { error } = await supabase
           .from('artworks')
           .update({
@@ -166,7 +169,7 @@ const Dashboard = () => {
           description: 'Artwork updated successfully',
         });
       } else {
-        // Create new artwork
+        // CREATE operation
         const { data, error } = await supabase
           .from('artworks')
           .insert({
@@ -176,13 +179,14 @@ const Dashboard = () => {
             image_url: values.image_url,
             user_id: user.id,
           })
-          .select();
+          .select()
+          .single();
         
         if (error) throw error;
         
         // Update local state
-        if (data && data[0]) {
-          setArtworks(prev => [data[0], ...prev]);
+        if (data) {
+          setArtworks(prev => [data, ...prev]);
           setStats(prev => ({
             ...prev,
             artworks: prev.artworks + 1
@@ -208,6 +212,7 @@ const Dashboard = () => {
     }
   };
 
+  // DELETE operation
   const handleDeleteArtwork = async (id: string) => {
     if (!confirm('Are you sure you want to delete this artwork?')) return;
 
@@ -396,7 +401,7 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Right Column */}
+        {/* Right Column - Profile and Quick Links */}
         <div className="space-y-6">
           <Card className="border-border">
             <CardHeader>
@@ -477,7 +482,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Artwork Form Dialog */}
+      {/* Artwork Form Dialog for CREATE and UPDATE */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>

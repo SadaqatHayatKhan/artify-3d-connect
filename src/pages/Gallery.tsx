@@ -12,7 +12,7 @@ type Artwork = Tables<'artworks'>;
 type Profile = Tables<'profiles'>;
 
 type GalleryItem = Artwork & {
-  profile?: Profile | null;
+  profiles?: Profile | null;
 };
 
 type FilterCategory = 'All' | 'Characters' | 'Environments' | 'Abstract' | 'Products';
@@ -32,7 +32,16 @@ const Gallery = () => {
       try {
         let query = supabase
           .from('artworks')
-          .select('*, profiles:user_id(*)');
+          .select(`
+            *,
+            profiles:user_id (
+              id,
+              display_name,
+              bio,
+              location,
+              avatar_url
+            )
+          `);
 
         if (activeCategory !== 'All') {
           query = query.eq('category', activeCategory);
@@ -45,16 +54,7 @@ const Gallery = () => {
           throw error;
         }
 
-        // Transform the data to match our GalleryItem type
-        const transformedData: GalleryItem[] = data?.map(item => {
-          const { profiles, ...artwork } = item as any;
-          return {
-            ...artwork,
-            profile: profiles
-          };
-        }) || [];
-
-        setArtworks(transformedData);
+        setArtworks(data || []);
       } catch (error) {
         console.error('Error fetching artworks:', error);
         toast({
@@ -226,11 +226,14 @@ const Gallery = () => {
                       <div>
                         <h3 className="font-medium text-lg">{artwork.title}</h3>
                         <p className="text-muted-foreground text-sm">
-                          by {artwork.profile?.display_name || 'Unknown Artist'}
+                          by {artwork.profiles?.display_name || 'Unknown Artist'}
                         </p>
                       </div>
                       <span className="text-xs px-2 py-1 bg-muted rounded-full">{artwork.category}</span>
                     </div>
+                    {artwork.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{artwork.description}</p>
+                    )}
                     <div className="flex justify-between items-center mt-3">
                       <div className="flex space-x-3 text-muted-foreground text-sm">
                         <button 
