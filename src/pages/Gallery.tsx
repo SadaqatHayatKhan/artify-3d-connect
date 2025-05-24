@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -34,13 +33,7 @@ const Gallery = () => {
           .from('artworks')
           .select(`
             *,
-            profiles!fk_artworks_user_id (
-              id,
-              display_name,
-              bio,
-              location,
-              avatar_url
-            )
+            profiles!fk_artworks_user_id (*)
           `);
 
         if (activeCategory !== 'All') {
