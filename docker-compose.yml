@@ -14,7 +14,8 @@ services:
     networks:
       - artify-network
     restart: unless-stopped
-
+    environment:
+      - NODE_ENV=production
 
   # Supabase database container
   db:
@@ -30,6 +31,20 @@ services:
     networks:
       - artify-network
     restart: unless-stopped
+
+  # Test environment service (optional - for local testing)
+  selenium-tests:
+    image: markhobson/maven-chrome:jdk-11
+    volumes:
+      - ./tests:/workspace
+    working_dir: /workspace
+    networks:
+      - artify-network
+    command: mvn clean test
+    depends_on:
+      - app
+    profiles:
+      - testing
 
 networks:
   artify-network:
