@@ -7,7 +7,10 @@ pipeline {
             steps {
                sh '''
             if [ -d "/var/lib/jenkins/DevOps/" ]; then
-                find "/var/lib/jenkins/DevOps/" -mindepth 1 -delete
+
+                sudo rm -rf /var/lib/jenkins/DevOps/*
+
+
                 echo "Contents of /var/lib/jenkins/DevOps/ have been removed."
             else
                 echo "Directory /var/lib/jenkins/DevOps/ does not exist."
