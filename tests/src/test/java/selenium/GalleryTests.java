@@ -21,7 +21,7 @@ public class GalleryTests {
     
     private static WebDriver driver;
     private static WebDriverWait wait;
-    private static final String BASE_URL = "http://localhost:8090";
+    private static final String BASE_URL = "http://app:80";
     
     @BeforeAll
     public static void setUp() {
