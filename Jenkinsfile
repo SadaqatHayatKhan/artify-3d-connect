@@ -37,7 +37,7 @@ pipeline {
             steps {
                 dir('/var/lib/jenkins/DevOps/php/') {
                     sh 'docker compose -p thereactapp up -d'
-                    sh 'sleep 30' // Wait for application to be ready
+                    sh 'sleep 300' // Wait for application to be ready
                 }
             }
         }
